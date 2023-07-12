@@ -1,43 +1,42 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-public class JwtService
+namespace Backend.Services
 {
-  private readonly string? _secret;
-  private readonly string? _expDate;
-
-  public JwtService(IConfiguration config)
-  {
-    _secret = config.GetSection("JwtConfig").GetSection("secret").Value;
-    if (_secret == null)
+    public class JwtService
     {
-      throw new InvalidOperationException("JwtConfig:secret is not set in the configuration");
-    }
+        private readonly string _secret;
+        private readonly string _expDate;
 
-    _expDate = config.GetSection("JwtConfig").GetSection("expirationInMinutes").Value;
-    if (_expDate == null)
-    {
-      throw new InvalidOperationException("JwtConfig:expirationInMinutes is not set in the configuration");
-    }
-  }
-
-  public string GenerateSecurityToken(string email)
-  {
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var key = Encoding.ASCII.GetBytes(_secret!);
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-      Subject = new ClaimsIdentity(new[]
+        public JwtService(IConfiguration config)
         {
-            new Claim(ClaimTypes.Name, email)
-        }),
-      Expires = DateTime.UtcNow.AddMinutes(double.Parse(_expDate!)),
-      SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-    };
+            _secret = config["JwtConfig:secret"] ?? throw new InvalidOperationException("JwtConfig:secret is not set in the configuration");
+            _expDate = config["JwtConfig:expirationInMinutes"] ?? throw new InvalidOperationException("JwtConfig:expirationInMinutes is not set in the configuration");
+        }
 
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    return tokenHandler.WriteToken(token);
-  }
+        public string GenerateSecurityToken(string email)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secretKey = _secret.PadRight(16, '*');
+            var key = Encoding.ASCII.GetBytes(secretKey);
+            var signingKey = new SymmetricSecurityKey(key);
+            var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, email)
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_expDate)),
+                SigningCredentials = signingCredentials
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+    }
 }

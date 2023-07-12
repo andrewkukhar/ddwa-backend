@@ -38,3 +38,6 @@
 /Users/andreykukhar/Desktop/ddwa/backend/Backend/bin/Debug/net7.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 /Users/andreykukhar/Desktop/ddwa/backend/Backend/bin/Debug/net7.0/Microsoft.IdentityModel.Tokens.dll
 /Users/andreykukhar/Desktop/ddwa/backend/Backend/bin/Debug/net7.0/System.IdentityModel.Tokens.Jwt.dll
+/Users/andreykukhar/Desktop/ddwa/backend/Backend/bin/Debug/net7.0/Microsoft.EntityFrameworkCore.dll
+/Users/andreykukhar/Desktop/ddwa/backend/Backend/bin/Debug/net7.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+/Users/andreykukhar/Desktop/ddwa/backend/Backend/bin/Debug/net7.0/Microsoft.EntityFrameworkCore.InMemory.dll
