@@ -1,7 +1,6 @@
-
-using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace Backend.Controllers
 {
@@ -9,19 +8,25 @@ namespace Backend.Controllers
   [Route("/api/")]
   public class UsersController : Controller
   {
-    private readonly AppDbContext _context;
+    private readonly DatabaseContext _context;
     private readonly JwtService _jwtService;
 
-    public UsersController(AppDbContext context, JwtService jwtService)
+    public UsersController(DatabaseContext context, JwtService jwtService)
     {
       _context = context;
       _jwtService = jwtService;
     }
 
+    [HttpGet]
+    public async Task<IEnumerable<User>> Get()
+    {
+      return await _context.Users.Find(_ => true).ToListAsync();
+    }
+
     [HttpPost("login")]
     public IActionResult Login([FromBody] User loginData)
     {
-      var user = _context.Users.FirstOrDefault(u => u.Email == loginData.Email && u.Password == loginData.Password);
+      var user = _context.Users.Find(u => u.Email == loginData.Email && u.Password == loginData.Password).FirstOrDefault();
 
       if (user == null)
       {
@@ -43,13 +48,12 @@ namespace Backend.Controllers
     [HttpPost("signup")]
     public IActionResult Signup([FromBody] User signupData)
     {
-      if (_context.Users.Any(u => u.Email == signupData.Email))
+      if (_context.Users.Find(u => u.Email == signupData.Email).Any())
       {
         return BadRequest("Email already exists");
       }
 
-      _context.Users.Add(signupData);
-      _context.SaveChanges();
+      _context.Users.InsertOne(signupData);
 
       var token = _jwtService.GenerateSecurityToken(signupData.Email);
 

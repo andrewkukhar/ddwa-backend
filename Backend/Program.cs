@@ -1,16 +1,18 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("ddwaDb"));
+builder.Services.Configure<DatabaseContext.Settings>(
+    builder.Configuration.GetSection(nameof(DatabaseContext)));
 
-// Add services to the container.
+builder.Services.AddSingleton<DatabaseContext>();
+Console.WriteLine(builder.Configuration["DatabaseContext:ConnectionString"]);
+
+
 services.AddScoped<JwtService>();
 services.AddAuthentication(x =>
 {
